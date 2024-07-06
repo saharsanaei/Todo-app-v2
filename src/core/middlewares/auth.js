@@ -1,13 +1,20 @@
-import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+import { getSecret } from '../secrets/index.js';
 
-dotenv.config();
+const authMiddleware = (req, res, next) => {
+  const token = req.headers['authorization'];
 
-export const authMiddleware = (req, res, next) => {
-    const authHeader = req.headers.authorization;
+  if (!token) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
 
-    if (authHeader && authHeader === `Bearer ${process.env.AUTH_KEY}`) {
-        next();
-    } else {
-        res.status(403).json({ message: 'Forbidden' });
-    }
+  try {
+    const decoded = jwt.verify(token, getSecret('AUTH_TOKEN'));
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
 };
+
+export default authMiddleware;

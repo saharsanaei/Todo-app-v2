@@ -1,7 +1,7 @@
-import config from '../configs/index.js';
+import dotenv from 'dotenv';
 
-const getSecret = (key) => {
-  return config[key];
+dotenv.config();
+
+export const getSecret = (key) => {
+    return process.env[key];
 };
-
-export { getSecret };
