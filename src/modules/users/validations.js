@@ -1,10 +1,27 @@
-import { body, param } from 'express-validator';
+import { check, validationResult } from 'express-validator';
 
-export const userIdValidation = [
-    param('id').isInt().withMessage('User ID must be an integer')
+// Validation rules for creating a user
+export const validateUserCreation = [
+  check('name').notEmpty().withMessage('Name is required'),
+  check('email').isEmail().withMessage('Email is invalid'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  }
 ];
 
-export const userValidation = [
-    body('name').isString().withMessage('Name must be a string'),
-    body('email').isEmail().withMessage('Email must be valid')
+// Validation rules for updating a user
+export const validateUserUpdate = [
+  check('name').optional().notEmpty().withMessage('Name is required'),
+  check('email').optional().isEmail().withMessage('Email is invalid'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  }
 ];

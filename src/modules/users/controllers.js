@@ -1,20 +1,34 @@
-import { getUserById, createUser, updateUser } from '../../models/user.js';
+import db from '../../core/services/database.js';
 
-export const getUser = async (req, res) => {
-    const { id } = req.params;
-    const user = await getUserById(id);
-    res.json(user);
+const getUserById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-export const createUserHandler = async (req, res) => {
-    const { name, email } = req.body;
-    const user = await createUser(name, email);
-    res.status(201).json(user);
+const createUser = async (req, res) => {
+  const { name, email } = req.body;
+  try {
+    const result = await db.query('INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *', [name, email]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-export const updateUserHandler = async (req, res) => {
-    const { id } = req.params;
-    const { name, email } = req.body;
-    const user = await updateUser(id, name, email);
-    res.json(user);
+const updateUser = async (req, res) => {
+  const { id } = req.params;
+  const { name, email } = req.body;
+  try {
+    const result = await db.query('UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *', [name, email, id]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
+export { getUserById, createUser, updateUser };

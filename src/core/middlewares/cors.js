@@ -1,8 +1,5 @@
 import cors from 'cors';
 
-export const corsOptions = {
-    origin: 'http://localhost:3000', // Your frontend URL
-    optionsSuccessStatus: 200
-};
+const corsMiddleware = cors();
 
-export const enableCors = cors(corsOptions);
+export default corsMiddleware;

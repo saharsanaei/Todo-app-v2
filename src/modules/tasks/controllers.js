@@ -1,32 +1,54 @@
-import { getTasksByUserId, getTaskById, createTask, updateTask, deleteTask } from '../../models/task.js';
+import db from '../../core/services/database.js';
 
-export const getTasks = async (req, res) => {
-    const { userId } = req.params;
-    const tasks = await getTasksByUserId(userId);
-    res.json(tasks);
+const getTasksByUserId = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const result = await db.query('SELECT * FROM tasks WHERE user_id = $1', [userId]);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-export const getTask = async (req, res) => {
-    const { id } = req.params;
-    const task = await getTaskById(id);
-    res.json(task);
+const getTaskById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await db.query('SELECT * FROM tasks WHERE id = $1', [id]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-export const createTaskHandler = async (req, res) => {
-    const { userId, title, description } = req.body;
-    const task = await createTask(userId, title, description);
-    res.status(201).json(task);
+const createTask = async (req, res) => {
+  const { user_id, title, description, is_completed } = req.body;
+  try {
+    const result = await db.query('INSERT INTO tasks (user_id, title, description, is_completed) VALUES ($1, $2, $3, $4) RETURNING *', [user_id, title, description, is_completed]);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-export const updateTaskHandler = async (req, res) => {
-    const { id } = req.params;
-    const { title, description, completed } = req.body;
-    const task = await updateTask(id, title, description, completed);
-    res.json(task);
+const updateTask = async (req, res) => {
+  const { id } = req.params;
+  const { user_id, title, description, is_completed } = req.body;
+  try {
+    const result = await db.query('UPDATE tasks SET user_id = $1, title = $2, description = $3, is_completed = $4 WHERE id = $5 RETURNING *', [user_id, title, description, is_completed, id]);
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-export const deleteTaskHandler = async (req, res) => {
-    const { id } = req.params;
-    await deleteTask(id);
-    res.status(204).end();
+const deleteTask = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query('DELETE FROM tasks WHERE id = $1', [id]);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
+export { getTasksByUserId, getTaskById, createTask, updateTask, deleteTask };

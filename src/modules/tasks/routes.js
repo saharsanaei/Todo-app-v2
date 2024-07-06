@@ -1,15 +1,12 @@
 import express from 'express';
-import { getTasks, getTask, createTaskHandler, updateTaskHandler, deleteTaskHandler } from './controllers.js';
-import { taskIdValidation, taskValidation } from './validations.js';
-import { authMiddleware } from '../../core/middlewares/auth.js';
-import { validate } from '../../core/middlewares/validate.js';
+import { getTasksByUserId, getTaskById, createTask, updateTask, deleteTask } from './controllers.js';
 
 const router = express.Router();
 
-router.get('/user/:userId', authMiddleware, taskIdValidation, validate, getTasks);
-router.get('/:id', authMiddleware, taskIdValidation, validate, getTask);
-router.post('/', authMiddleware, taskValidation, validate, createTaskHandler);
-router.put('/:id', authMiddleware, taskIdValidation, taskValidation, validate, updateTaskHandler);
-router.delete('/:id', authMiddleware, taskIdValidation, validate, deleteTaskHandler);
+router.get('/user/:userId', getTasksByUserId);
+router.get('/:id', getTaskById);
+router.post('/', createTask);
+router.put('/:id', updateTask);
+router.delete('/:id', deleteTask);
 
 export default router;
