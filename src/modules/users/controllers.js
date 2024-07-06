@@ -1,34 +1,21 @@
-import db from '../../core/services/database.js';
+import supabase from '../../core/services/database.js';
 
-const getUserById = async (req, res) => {
+export const getUserById = async (req, res) => {
   const { id } = req.params;
-  try {
-    const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(200).json(data);
 };
 
-const createUser = async (req, res) => {
-  const { name, email } = req.body;
-  try {
-    const result = await db.query('INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *', [name, email]);
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+export const createUser = async (req, res) => {
+  const { data, error } = await supabase.from('users').insert([req.body]);
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(201).json(data[0]);
 };
 
-const updateUser = async (req, res) => {
+export const updateUser = async (req, res) => {
   const { id } = req.params;
-  const { name, email } = req.body;
-  try {
-    const result = await db.query('UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *', [name, email, id]);
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const { data, error } = await supabase.from('users').update(req.body).eq('id', id);
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(200).json(data[0]);
 };
-
-export { getUserById, createUser, updateUser };

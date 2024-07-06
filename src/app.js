@@ -1,39 +1,26 @@
 import express from 'express';
-import cors from 'cors';
-import { getSecret } from './core/secrets/index.js';
+import dotenv from 'dotenv';
+import cors from './core/middlewares/cors.js';
+import { authMiddleware } from './core/middlewares/auth.js';
+import notFound from './core/middlewares/notFound.js';
 import logger from './core/middlewares/logger.js';
-import authMiddleware from './core/middlewares/auth.js';
-import { notFound } from './core/middlewares/notFound.js';
-import validate from './core/middlewares/validate.js';
 import userRoutes from './modules/users/routes.js';
 import taskRoutes from './modules/tasks/routes.js';
 
+dotenv.config();
+
 const app = express();
-const port = getSecret('PORT') || 6543;
+const port = process.env.PORT || 3000;
 
-// Middleware to parse JSON bodies
 app.use(express.json());
-// Middleware for CORS
-app.use(cors());
-// Middleware to log requests
+app.use(cors);
 app.use(logger);
-// Middleware to authenticate requests
-// app.use(authMiddleware);
-// Middleware to handle not found routes
-// app.use(notFound);
-// Middleware to validate requests
-app.use(validate);
 
-// Routes
-app.use('/users', userRoutes);
-app.use('/tasks', taskRoutes);
+app.use('/api/users', authMiddleware, userRoutes);
+app.use('/api/tasks', authMiddleware, taskRoutes);
 
-// Custom 404 middleware
-app.use((req, res, next) => {
-  res.status(404).json({ error: 'Not Found' });
-});
+app.use(notFound);
 
-// Start the server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

@@ -1,54 +1,35 @@
-import db from '../../core/services/database.js';
+import supabase from '../../core/services/database.js';
 
-const getTasksByUserId = async (req, res) => {
+export const getTasksByUserId = async (req, res) => {
   const { userId } = req.params;
-  try {
-    const result = await db.query('SELECT * FROM tasks WHERE user_id = $1', [userId]);
-    res.json(result.rows);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const { data, error } = await supabase.from('tasks').select('*').eq('user_id', userId);
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(200).json(data);
 };
 
-const getTaskById = async (req, res) => {
+export const getTaskById = async (req, res) => {
   const { id } = req.params;
-  try {
-    const result = await db.query('SELECT * FROM tasks WHERE id = $1', [id]);
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const { data, error } = await supabase.from('tasks').select('*').eq('id', id).single();
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(200).json(data);
 };
 
-const createTask = async (req, res) => {
-  const { user_id, title, description, is_completed } = req.body;
-  try {
-    const result = await db.query('INSERT INTO tasks (user_id, title, description, is_completed) VALUES ($1, $2, $3, $4) RETURNING *', [user_id, title, description, is_completed]);
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+export const createTask = async (req, res) => {
+  const { data, error } = await supabase.from('tasks').insert([req.body]);
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(201).json(data[0]);
 };
 
-const updateTask = async (req, res) => {
+export const updateTask = async (req, res) => {
   const { id } = req.params;
-  const { user_id, title, description, is_completed } = req.body;
-  try {
-    const result = await db.query('UPDATE tasks SET user_id = $1, title = $2, description = $3, is_completed = $4 WHERE id = $5 RETURNING *', [user_id, title, description, is_completed, id]);
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const { data, error } = await supabase.from('tasks').update(req.body).eq('id', id);
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(200).json(data[0]);
 };
 
-const deleteTask = async (req, res) => {
+export const deleteTask = async (req, res) => {
   const { id } = req.params;
-  try {
-    await db.query('DELETE FROM tasks WHERE id = $1', [id]);
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const { data, error } = await supabase.from('tasks').delete().eq('id', id);
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(204).send();
 };
-
-export { getTasksByUserId, getTaskById, createTask, updateTask, deleteTask };

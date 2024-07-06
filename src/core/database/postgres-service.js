@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { getSecret } from '../secrets';
+import { getSecret } from '../secrets/index.s';
 
 const pool = new Pool({
   host: getSecret('PGHOST'),
